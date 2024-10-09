@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Temperature Graph</title>
+  <!-- Chart.js Library -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Date Adapter for Chart.js (using date-fns) -->
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+</head>
+<body>
+  <h1>Temperature Over Time</h1>
+  <canvas id="temperatureChart" width="400" height="200"></canvas>
+
+  <script>
+    async function fetchTemperatureData() {
+      const response = await fetch('/temperature-data');
+      const data = await response.json();
+
+      // Extract temperature and time values
+      const temperatures = data.map(entry => entry.temperature);
+      const timestamps = data.map(entry => new Date(entry.time)); // Ensure 'time' is a valid Date object
+
+      return { temperatures, timestamps };
+    }
+
+    async function drawChart() {
+      const { temperatures, timestamps } = await fetchTemperatureData();
+
+      const ctx = document.getElementById('temperatureChart').getContext('2d');
+
+      // Create the chart
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: timestamps, // X-axis labels (timestamps)
+          datasets: [{
+            label: 'Temperature (°C)',
+            data: temperatures, // Y-axis data
+            borderColor: 'rgba(75, 192, 192, 1)',
+            fill: false,
+            borderWidth: 2
+          }]
+        },
+        options: {
+          scales: {
+            x: {
+              type: 'time', // X-axis is a time scale
+              time: {
+                unit: 'day', // Change this based on your needs
+		tooltipFormat: 'HH:mm', // Tooltip time format (24-hour)
+                displayFormats: {
+                  minute: 'HH:mm', // Display format for minutes (24-hour)
+                  hour: 'HH:mm',   // Display format for hours (24-hour)
+                  day: 'HH:mm'
+		}
+              }
+            },
+            y: {
+              beginAtZero: false
+            }
+          }
+        }
+      });
+    }
+
+    // Draw the chart when the page loads
+    window.onload = drawChart;
+  </script>
+</body>
+</html>
